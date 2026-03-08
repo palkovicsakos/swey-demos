@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<!--
+  SWEY Demos — Master Template
+  ============================
+  Placeholder tokens (replace per client):
+    LOGO_URL_PLACEHOLDER          — URL to client's logo image
+    COMPANY_NAME_PLACEHOLDER      — Client company name (e.g. "Bergmann Kft.")
+    BRAND_PRIMARY_PLACEHOLDER     — Primary brand color hex (e.g. #1a1a2e)
+    BRAND_SECONDARY_PLACEHOLDER   — Secondary brand color hex (e.g. #e94560)
+    USE_CASE_1_TITLE              — Title of first use case
+    USE_CASE_1_DESC               — Description of first use case
+    USE_CASE_1_ICON               — Emoji or SVG icon for first use case
+    USE_CASE_2_TITLE              — Title of second use case
+    USE_CASE_2_DESC               — Description of second use case
+    USE_CASE_2_ICON               — Emoji or SVG icon for second use case
+    USE_CASE_3_TITLE              — Title of third use case
+    USE_CASE_3_DESC               — Description of third use case
+    USE_CASE_3_ICON               — Emoji or SVG icon for third use case
+    CALENDLY_URL_PLACEHOLDER      — Calendly booking URL
+-->
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI a COMPANY_NAME_PLACEHOLDER vállalkozásában — SWEY AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --brand-primary: BRAND_PRIMARY_PLACEHOLDER;
+      --brand-secondary: BRAND_SECONDARY_PLACEHOLDER;
+      --brand-text: #FFFFFF;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f8f9fa;
+    }
+
+    /* Header */
+    .header {
+      background: var(--brand-primary);
+      padding: 16px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-logo {
+      height: 40px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .header-logo-fallback {
+      color: var(--brand-text);
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .powered-badge {
+      background: rgba(255,255,255,0.15);
+      color: var(--brand-text);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    /* Hero */
+    .hero {
+      background: var(--brand-primary);
+      padding: 64px 32px 80px;
+      text-align: center;
+      color: var(--brand-text);
+    }
+
+    .hero h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin: 0 0 16px;
+      line-height: 1.2;
+      letter-spacing: -0.03em;
+    }
+
+    .hero p {
+      font-size: 1.125rem;
+      opacity: 0.85;
+      max-width: 540px;
+      margin: 0 auto 32px;
+      line-height: 1.6;
+    }
+
+    .hero-cta {
+      display: inline-block;
+      background: var(--brand-secondary);
+      color: var(--brand-text);
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 14px 32px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+
+    .hero-cta:hover { opacity: 0.88; }
+
+    /* Cards section */
+    .cards-section {
+      padding: 64px 32px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .cards-section h2 {
+      text-align: center;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-bottom: 8px;
+    }
+
+    .cards-section .subtitle {
+      text-align: center;
+      color: #6b7280;
+      margin-bottom: 48px;
+      font-size: 1rem;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    @media (max-width: 768px) {
+      .cards-grid { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 1.75rem; }
+      .header { padding: 12px 20px; }
+      .cards-section { padding: 40px 20px; }
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 32px 24px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .card-icon {
+      font-size: 2.5rem;
+      line-height: 1;
+    }
+
+    .card h3 {
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin: 0;
+    }
+
+    .card p {
+      color: #6b7280;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+      margin: 0;
+      flex: 1;
+    }
+
+    /* Interactive element: Card 1 — Animated counter */
+    .counter-widget {
+      background: #f0fdf4;
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .counter-label {
+      font-size: 0.75rem;
+      color: #16a34a;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .counter-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #15803d;
+    }
+
+    .counter-unit {
+      font-size: 0.8125rem;
+      color: #16a34a;
+    }
+
+    /* Interactive element: Card 2 — Mini bar chart */
+    .barchart-widget {
+      background: #eff6ff;
+      border-radius: 10px;
+      padding: 16px 12px 10px;
+    }
+
+    .barchart-title {
+      font-size: 0.75rem;
+      color: #1d4ed8;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+    }
+
+    .barchart-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      height: 56px;
+    }
+
+    .bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      height: 100%;
+      justify-content: flex-end;
+    }
+
+    .bar {
+      width: 100%;
+      background: var(--brand-primary);
+      border-radius: 4px 4px 0 0;
+      transition: height 1.2s cubic-bezier(.4,0,.2,1);
+      min-height: 4px;
+    }
+
+    .bar-label {
+      font-size: 0.6875rem;
+      color: #3b82f6;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    /* Interactive element: Card 3 — Status list */
+    .status-widget {
+      background: #fefce8;
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .status-label-header {
+      font-size: 0.75rem;
+      color: #a16207;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.875rem;
+      color: #1c1917;
+    }
+
+    .status-check {
+      width: 20px;
+      height: 20px;
+      background: #16a34a;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      opacity: 0;
+      transform: scale(0.6);
+      transition: all 0.4s cubic-bezier(.4,0,.2,1);
+    }
+
+    .status-check.visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .status-check svg {
+      width: 12px;
+      height: 12px;
+      stroke: white;
+      fill: none;
+    }
+
+    /* CTA Footer */
+    .cta-footer {
+      background: var(--brand-primary);
+      padding: 64px 32px;
+      text-align: center;
+      color: var(--brand-text);
+    }
+
+    .cta-footer h2 {
+      font-size: 2rem;
+      font-weight: 800;
+      margin: 0 0 12px;
+      letter-spacing: -0.02em;
+    }
+
+    .cta-footer p {
+      opacity: 0.85;
+      font-size: 1.0625rem;
+      max-width: 480px;
+      margin: 0 auto 32px;
+      line-height: 1.6;
+    }
+
+    .cta-book {
+      display: inline-block;
+      background: #ffffff;
+      color: var(--brand-primary);
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 14px 36px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+
+    .cta-book:hover { opacity: 0.88; }
+
+    /* Footer credit */
+    .footer-credit {
+      background: #1a1a2e;
+      padding: 20px 32px;
+      text-align: center;
+      color: rgba(255,255,255,0.4);
+      font-size: 0.8125rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <img
+        id="brand-logo"
+        class="header-logo"
+        src="LOGO_URL_PLACEHOLDER"
+        alt="COMPANY_NAME_PLACEHOLDER logo"
+        onerror="this.style.display='none';document.getElementById('logo-fallback').style.display='block';"
+      />
+      <span id="logo-fallback" class="header-logo-fallback" style="display:none;">
+        COMPANY_NAME_PLACEHOLDER
+      </span>
+    </div>
+    <span class="powered-badge">⚡ Powered by SWEY AI</span>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <h1>Így néz ki az AI<br/>a <span id="hero-company">COMPANY_NAME_PLACEHOLDER</span> vállalkozásában</h1>
+    <p>Ez nem egy sablon. Ez az Önök folyamatait figyelembe vevő, személyre szabott AI-integráció előnézete — mielőtt döntene.</p>
+    <a href="#use-cases" class="hero-cta">Mutasd meg a demót ↓</a>
+  </section>
+
+  <!-- Use Case Cards -->
+  <section class="cards-section" id="use-cases">
+    <h2>3 lehetőség, amit a rendszer kezel</h2>
+    <p class="subtitle">Minden kártya egy valós, már működő AI-megoldást mutat be az Önök iparágában.</p>
+
+    <div class="cards-grid">
+
+      <!-- Card 1: Time savings counter -->
+      <div class="card">
+        <div class="card-icon">USE_CASE_1_ICON</div>
+        <h3>USE_CASE_1_TITLE</h3>
+        <p>USE_CASE_1_DESC</p>
+        <div class="counter-widget">
+          <span class="counter-label">Heti megtakarítás</span>
+          <span class="counter-value" id="counter-hours">0</span>
+          <span class="counter-unit">óra / hét</span>
+        </div>
+      </div>
+
+      <!-- Card 2: Bar chart -->
+      <div class="card">
+        <div class="card-icon">USE_CASE_2_ICON</div>
+        <h3>USE_CASE_2_TITLE</h3>
+        <p>USE_CASE_2_DESC</p>
+        <div class="barchart-widget">
+          <div class="barchart-title">Teljesítmény (hónap)</div>
+          <div class="barchart-bars">
+            <div class="bar-col">
+              <div class="bar" id="bar-1" style="height:0%"></div>
+              <div class="bar-label">Jan</div>
+            </div>
+            <div class="bar-col">
+              <div class="bar" id="bar-2" style="height:0%"></div>
+              <div class="bar-label">Feb</div>
+            </div>
+            <div class="bar-col">
+              <div class="bar" id="bar-3" style="height:0%"></div>
+              <div class="bar-label">Már</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Status list -->
+      <div class="card">
+        <div class="card-icon">USE_CASE_3_ICON</div>
+        <h3>USE_CASE_3_TITLE</h3>
+        <p>USE_CASE_3_DESC</p>
+        <div class="status-widget">
+          <div class="status-label-header">Automatizált feladatok</div>
+          <div class="status-item">
+            <div class="status-check" id="check-1">
+              <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <span>Adategyeztetés</span>
+          </div>
+          <div class="status-item">
+            <div class="status-check" id="check-2">
+              <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <span>Riport generálás</span>
+          </div>
+          <div class="status-item">
+            <div class="status-check" id="check-3">
+              <svg viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <span>Értesítés küldés</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CTA Footer -->
+  <section class="cta-footer">
+    <h2>Szeretné ezt a valóságban látni?</h2>
+    <p>30 perces konzultáció — megmutatjuk, melyik AI-megoldás illik az Önök folyamataiba.</p>
+    <a href="CALENDLY_URL_PLACEHOLDER" class="cta-book" target="_blank" rel="noopener">
+      Időpontot foglalok →
+    </a>
+  </section>
+
+  <!-- Footer credit -->
+  <div class="footer-credit">
+    Készítette: <strong style="color:rgba(255,255,255,0.7)">SWEY Innovations</strong> — swey.hu
+  </div>
+
+  <!-- Interactive animations (vanilla JS) -->
+  <script>
+    // Animate counter (Card 1)
+    function animateCounter(el, target, duration) {
+      const start = performance.now();
+      function step(now) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.round(eased * target);
+        if (progress < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    // Animate bar chart (Card 2)
+    function animateBars() {
+      const bars = [
+        { el: document.getElementById('bar-1'), pct: '58%' },
+        { el: document.getElementById('bar-2'), pct: '74%' },
+        { el: document.getElementById('bar-3'), pct: '91%' },
+      ];
+      bars.forEach(({ el, pct }, i) => {
+        setTimeout(() => { el.style.height = pct; }, i * 200 + 300);
+      });
+    }
+
+    // Animate status checks (Card 3)
+    function animateChecks() {
+      ['check-1', 'check-2', 'check-3'].forEach((id, i) => {
+        setTimeout(() => {
+          document.getElementById(id).classList.add('visible');
+        }, i * 400 + 600);
+      });
+    }
+
+    // Intersection Observer — trigger when cards enter viewport
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const counter = document.getElementById('counter-hours');
+          if (counter) animateCounter(counter, 12, 1800);
+          animateBars();
+          animateChecks();
+          observer.disconnect();
+        }
+      });
+    }, { threshold: 0.2 });
+
+    const cardsSection = document.getElementById('use-cases');
+    if (cardsSection) observer.observe(cardsSection);
+  </script>
+
+</body>
+</html>
