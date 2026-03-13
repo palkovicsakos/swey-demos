@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SWEY AIOS — Revenue Intelligence</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #07070c;
+  --surface:  #0e0e17;
+  --surface2: #141421;
+  --surface3: #1a1a2c;
+  --border:   #1e1e30;
+  --border2:  #2a2a42;
+  --text:     #d4d4ea;
+  --muted:    #58587a;
+  --muted2:   #8888a8;
+  --accent:   #e8a020;
+  --accent2:  #f5c060;
+  --accent-dim:#3d2a08;
+  --indigo:   #5b48e8;
+  --red:      #e84848;
+  --green:    #28c76f;
+  --ff-head:  'Syne', sans-serif;
+  --ff-mono:  'DM Mono', monospace;
+  --ff-body:  -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+body {
+  font-family: var(--ff-body);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 18px 24px 40px;
+  font-size: 14px;
+  background-image: radial-gradient(ellipse 70% 50% at 50% -10%, rgba(232,160,32,.08) 0%, transparent 60%);
+}
+
+/* ── HEADER ────────────────────────────────────────────────── */
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px; padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.header-wordmark {
+  font-family: var(--ff-head); font-size: 18px; font-weight: 700;
+  letter-spacing: -0.4px; color: var(--text);
+}
+.header-wordmark span { color: var(--accent); }
+.header-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.header-right { display: flex; gap: 8px; align-items: center; }
+.htag {
+  font-size: 11px; font-family: var(--ff-mono);
+  background: var(--accent-dim); color: var(--accent2);
+  padding: 3px 10px; border-radius: 4px; border: 1px solid rgba(232,160,32,.25);
+}
+
+/* ── TAB NAV ──────────────────────────────────────────────── */
+.tab-nav {
+  display: flex; gap: 2px; margin-bottom: 16px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 4px; width: fit-content;
+}
+.tab-btn {
+  background: transparent; border: none; border-radius: 5px;
+  padding: 6px 16px; font-size: 13px; font-weight: 500;
+  color: var(--muted2); cursor: pointer; transition: all .15s;
+  font-family: var(--ff-body);
+}
+.tab-btn:hover { color: var(--text); background: var(--surface2); }
+.tab-btn.active { background: var(--accent); color: #08080f; font-weight: 600; }
+
+/* ── MAIN LAYOUT ──────────────────────────────────────────── */
+.layout { display: grid; grid-template-columns: 1fr 290px; gap: 14px; align-items: start; }
+
+/* ── PYRAMID ──────────────────────────────────────────────── */
+.pyramid-wrap {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 18px 16px;
+}
+.pyramid-legend {
+  display: flex; justify-content: space-between; margin-bottom: 14px;
+}
+.pyramid-legend span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+.pyramid-inner { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.tier-row { display: flex; align-items: center; width: 100%; justify-content: center; }
+.tier {
+  height: 42px; border-radius: 6px; display: flex; align-items: center;
+  justify-content: space-between; padding: 0 13px; cursor: pointer;
+  transition: transform .12s, box-shadow .12s; position: relative; overflow: hidden;
+}
+.tier:hover { transform: scaleX(1.012); box-shadow: 0 4px 16px rgba(0,0,0,.5); }
+.tier.active { box-shadow: 0 0 0 1.5px rgba(255,255,255,.2); }
+.tier.highlighted { box-shadow: 0 0 0 1.5px rgba(255,255,255,.45), 0 0 10px rgba(255,255,255,.06); }
+.tier.dimmed { opacity: .2; }
+.tier.channel-lit { box-shadow: 0 0 0 2px var(--accent), 0 0 14px rgba(232,160,32,.2); opacity: 1 !important; }
+.tier-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tier-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.tier-price { font-size: 11px; opacity: .7; white-space: nowrap; font-family: var(--ff-mono); }
+.tier-badge { font-size: 10px; background: rgba(0,0,0,.35); padding: 2px 6px; border-radius: 8px; white-space: nowrap; }
+.arrow-down { display: flex; align-items: center; justify-content: center; font-size: 12px; height: 10px; color: var(--border2); transition: color .15s; }
+.arrow-down.lit { color: var(--accent); }
+.rev-bar { position: absolute; bottom: 0; left: 10px; height: 2px; border-radius: 2px; opacity: .4; }
+
+/* ── FUNNEL VIEW ──────────────────────────────────────────── */
+.funnel-wrap {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 16px; overflow-y: auto; max-height: 72vh;
+}
+#funnelSvg { width: 100%; display: block; }
+
+/* ── SIDEBAR ──────────────────────────────────────────────── */
+.sidebar { display: flex; flex-direction: column; gap: 10px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+.card-title {
+  font-size: 10.5px; color: var(--muted); text-transform: uppercase;
+  letter-spacing: .6px; margin-bottom: 10px; font-weight: 600;
+}
+
+/* Detail panel */
+.detail-panel { min-height: 170px; }
+.detail-empty { color: var(--muted); font-size: 12.5px; line-height: 1.6; }
+.cat-chip {
+  display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 8px;
+  font-weight: 700; text-transform: uppercase; letter-spacing: .6px; margin-bottom: 7px;
+}
+.cat-attraction  { background: #0d3320; color: #6ee7a0; }
+.cat-continuity  { background: #161340; color: #a5b4fc; }
+.cat-mid         { background: #2e0f60; color: #c4b5fd; }
+.cat-highticket  { background: #3d1800; color: #fcd34d; }
+.detail-name { font-size: 15px; font-weight: 600; margin-bottom: 2px; line-height: 1.3; font-family: var(--ff-head); }
+.detail-sub { font-size: 11.5px; color: var(--muted); margin-bottom: 8px; }
+.detail-price { font-size: 20px; font-weight: 700; margin-bottom: 10px; font-family: var(--ff-mono); }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.di { background: var(--surface2); border-radius: 5px; padding: 7px 9px; }
+.di-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 2px; }
+.di-value { font-size: 11.5px; font-weight: 500; line-height: 1.3; }
+.di-wide { grid-column: 1 / -1; }
+
+/* Presets */
+.preset-btns { display: flex; flex-direction: column; gap: 5px; }
+.pbtn {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
+  padding: 8px 11px; cursor: pointer; transition: all .12s; text-align: left;
+  color: var(--text); width: 100%;
+}
+.pbtn:hover { background: var(--surface3); border-color: var(--border2); }
+.pbtn.active { border-color: var(--accent); background: var(--accent-dim); }
+.pbtn-name { font-size: 12px; font-weight: 600; }
+.pbtn-desc { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+/* Toggles */
+.trow { display: flex; align-items: center; justify-content: space-between; padding: 5px 0; }
+.trow + .trow { border-top: 1px solid var(--border); }
+.trow span { font-size: 12px; }
+.tgl { width: 32px; height: 17px; background: var(--border2); border-radius: 9px; cursor: pointer; position: relative; transition: background .18s; border: none; flex-shrink: 0; }
+.tgl.on { background: var(--accent); }
+.tgl::after { content: ''; position: absolute; width: 11px; height: 11px; background: #fff; border-radius: 50%; top: 3px; left: 3px; transition: transform .18s; }
+.tgl.on::after { transform: translateX(15px); }
+
+/* ── CALCULATOR TAB ──────────────────────────────────────── */
+.calc-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.calc-header {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px;
+  background: var(--border); border-bottom: 1px solid var(--border);
+}
+.calc-header-cell {
+  background: var(--surface2); padding: 10px 14px;
+}
+.calc-header-cell .label { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 3px; }
+.calc-header-cell .value { font-size: 22px; font-weight: 700; font-family: var(--ff-mono); }
+.calc-header-cell .sub { font-size: 10.5px; color: var(--muted2); margin-top: 2px; }
+.calc-header-cell .value.gold { color: var(--accent); }
+.calc-header-cell .value.green { color: var(--green); }
+
+.calc-tiers { display: flex; flex-direction: column; }
+.calc-tier-row {
+  display: grid; grid-template-columns: 200px 1fr auto;
+  gap: 12px; align-items: start; padding: 14px 16px;
+  border-bottom: 1px solid var(--border); transition: background .1s;
+}
+.calc-tier-row:last-child { border-bottom: none; }
+.calc-tier-row:hover { background: rgba(255,255,255,.015); }
+.calc-tier-name { font-size: 13px; font-weight: 500; line-height: 1.3; }
+.calc-tier-type { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+.calc-tier-dot { width: 8px; height: 8px; border-radius: 2px; display: inline-block; margin-right: 5px; flex-shrink: 0; vertical-align: middle; }
+.calc-sliders { display: flex; flex-direction: column; gap: 9px; }
+.slider-group { display: flex; flex-direction: column; gap: 3px; }
+.slider-top { display: flex; justify-content: space-between; align-items: baseline; }
+.slider-label { font-size: 11px; color: var(--muted2); }
+.slider-val { font-size: 11.5px; font-weight: 600; font-family: var(--ff-mono); }
+input[type=range] {
+  -webkit-appearance: none; width: 100%; height: 3px;
+  background: var(--surface3); border-radius: 2px; outline: none; cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 13px; height: 13px;
+  background: var(--accent); border-radius: 50%; cursor: pointer;
+  box-shadow: 0 0 6px rgba(232,160,32,.5);
+}
+input[type=range]::-moz-range-thumb {
+  width: 13px; height: 13px; background: var(--accent);
+  border-radius: 50%; cursor: pointer; border: none;
+}
+.calc-tier-result { text-align: right; }
+.calc-tier-arr { font-size: 17px; font-weight: 700; font-family: var(--ff-mono); white-space: nowrap; }
+.calc-tier-mo { font-size: 10.5px; color: var(--muted2); margin-top: 2px; white-space: nowrap; }
+.calc-tier-formula { font-size: 10px; color: var(--muted); margin-top: 4px; font-family: var(--ff-mono); white-space: nowrap; }
+.calc-inert { opacity: .4; pointer-events: none; }
+
+.calc-breakdown {
+  padding: 14px 16px; background: var(--surface2); border-top: 1px solid var(--border);
+}
+.cb-title { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 10px; }
+.cb-bars { display: flex; flex-direction: column; gap: 7px; }
+.cb-bar-row { display: flex; align-items: center; gap: 10px; }
+.cb-name { font-size: 11.5px; width: 175px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cb-track { flex: 1; height: 5px; background: var(--surface3); border-radius: 3px; overflow: hidden; }
+.cb-fill { height: 100%; border-radius: 3px; transition: width .35s; }
+.cb-pct { font-size: 10.5px; color: var(--muted2); width: 34px; text-align: right; font-family: var(--ff-mono); }
+.cb-amt { font-size: 10.5px; color: var(--muted2); width: 90px; text-align: right; font-family: var(--ff-mono); flex-shrink: 0; }
+
+.calc-preset-row {
+  display: flex; gap: 6px; align-items: center;
+  padding: 10px 16px; border-top: 1px solid var(--border); background: var(--surface);
+}
+.calc-preset-label { font-size: 11px; color: var(--muted); margin-right: 4px; }
+.calc-preset-btn {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 5px;
+  padding: 5px 12px; font-size: 11px; color: var(--muted2); cursor: pointer;
+  transition: all .12s; font-family: var(--ff-body);
+}
+.calc-preset-btn:hover { color: var(--text); border-color: var(--border2); }
+.calc-preset-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent2); }
+
+/* ── CHANNELS TAB ────────────────────────────────────────── */
+.channels-wrap { display: grid; grid-template-columns: 1fr 270px; gap: 14px; align-items: start; }
+.channels-main { display: flex; flex-direction: column; gap: 10px; }
+.channels-grid-label {
+  display: grid; grid-template-columns: 90px 1fr 1fr; gap: 9px;
+  padding: 0 2px; margin-bottom: 2px;
+}
+.ch-axis-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; text-align: center; }
+.ch-axis-label.left { text-align: left; }
+.channels-matrix { display: grid; grid-template-columns: 90px 1fr 1fr; gap: 9px; }
+.ch-row-label {
+  display: flex; align-items: center; justify-content: flex-end; padding-right: 10px;
+}
+.ch-row-label-inner {
+  font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px;
+  text-align: right; line-height: 1.4;
+}
+.ch-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  padding: 13px; cursor: pointer; transition: all .18s; position: relative;
+}
+.ch-card:hover { border-color: var(--border2); background: var(--surface2); }
+.ch-card.active { background: var(--surface2); }
+.ch-card-header { display: flex; align-items: flex-start; gap: 9px; margin-bottom: 9px; }
+.ch-icon { font-size: 20px; flex-shrink: 0; }
+.ch-card-titles { flex: 1; }
+.ch-name { font-size: 13px; font-weight: 600; font-family: var(--ff-head); line-height: 1.2; }
+.ch-name-en { font-size: 10.5px; color: var(--muted); margin-top: 1px; }
+.ch-label {
+  font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px;
+  padding: 2px 7px; border-radius: 3px; white-space: nowrap; margin-top: 4px; display: inline-block;
+}
+.ch-desc { font-size: 12px; color: var(--muted2); line-height: 1.55; margin-bottom: 9px; }
+.ch-metric {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--surface3); border-radius: 4px; padding: 6px 9px;
+}
+.ch-metric-icon { font-size: 11px; }
+.ch-metric-text { font-size: 11px; color: var(--muted2); flex: 1; }
+.ch-metric-val { font-size: 11px; font-weight: 600; font-family: var(--ff-mono); }
+.ch-tiers { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
+.ch-tier-chip {
+  font-size: 10px; padding: 2px 7px; border-radius: 3px;
+  font-weight: 500; white-space: nowrap; border: 1px solid transparent;
+}
+
+/* Channel detail sidebar */
+.ch-detail { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 15px; }
+.ch-detail-empty { color: var(--muted); font-size: 12.5px; line-height: 1.6; }
+.ch-detail-title { font-size: 15px; font-weight: 700; font-family: var(--ff-head); margin-bottom: 7px; }
+.ch-rule100 {
+  background: var(--accent-dim); border: 1px solid rgba(232,160,32,.2);
+  border-radius: 6px; padding: 11px; margin: 11px 0;
+}
+.ch-rule100-label { font-size: 10px; color: var(--accent2); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 3px; font-weight: 600; }
+.ch-rule100-value { font-size: 15px; font-weight: 700; font-family: var(--ff-mono); color: var(--accent); }
+.ch-rule100-desc { font-size: 11px; color: var(--muted2); margin-top: 3px; }
+.ch-detail-section { margin-top: 11px; }
+.ch-detail-section-title { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 7px; font-weight: 600; }
+.ch-detail-text { font-size: 12px; color: var(--muted2); line-height: 1.6; }
+.ch-detail-tiers { display: flex; flex-direction: column; gap: 5px; }
+.ch-detail-tier-row { display: flex; align-items: center; gap: 7px; }
+.ch-detail-tier-dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+.ch-detail-tier-name { font-size: 11.5px; }
+.ch-detail-tier-price { font-size: 11px; color: var(--muted); font-family: var(--ff-mono); }
+
+/* ── LEARN / EDUCATIONAL ─────────────────────────────────── */
+.learn-section { margin-top: 10px; }
+.learn-toggle-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; cursor: pointer; }
+.learn-toggle-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; font-weight: 600; }
+.learn-toggle-icon { font-size: 11px; color: var(--muted); transition: transform .15s; }
+.learn-toggle-icon.open { transform: rotate(90deg); }
+.learn-body { display: none; }
+.learn-body.open { display: block; }
+.learn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.learn-card { background: var(--surface); border: 1px solid var(--border); border-radius: 7px; overflow: hidden; }
+.learn-card-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px; cursor: pointer; user-select: none;
+}
+.learn-card-header:hover { background: var(--surface2); }
+.learn-card-dot { width: 7px; height: 7px; border-radius: 2px; flex-shrink: 0; }
+.learn-card-title { font-size: 12px; font-weight: 600; flex: 1; }
+.learn-card-chevron { font-size: 10px; color: var(--muted); transition: transform .15s; }
+.learn-card-chevron.open { transform: rotate(90deg); }
+.learn-card-body { display: none; padding: 0 10px 10px; }
+.learn-card-body.open { display: block; }
+.learn-card-what { font-size: 11.5px; color: var(--muted2); line-height: 1.6; margin-bottom: 7px; }
+.learn-card-examples { margin-bottom: 7px; }
+.learn-card-ex-title { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; margin-bottom: 4px; }
+.learn-card-ex-item { font-size: 10.5px; color: var(--muted2); line-height: 1.55; padding-left: 10px; position: relative; }
+.learn-card-ex-item::before { content: '›'; position: absolute; left: 0; color: var(--muted); }
+.learn-quote { font-size: 10.5px; color: var(--accent2); font-style: italic; border-left: 2px solid var(--accent-dim); padding: 5px 9px; margin-top: 6px; line-height: 1.5; }
+.ref-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; margin-top: 8px; }
+.ref-card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 9px 10px; }
+.ref-book { font-size: 12px; font-weight: 600; font-family: var(--ff-head); margin-bottom: 4px; }
+.ref-desc { font-size: 11px; color: var(--muted2); line-height: 1.4; margin-bottom: 5px; }
+.ref-chapters { font-size: 10px; color: var(--muted); }
+
+/* ── HEALTH + PROMPT ──────────────────────────────────────── */
+.bottom-section { margin-top: 12px; }
+.health-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.hbox { background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; padding: 8px 10px; }
+.hbox.pass { border-color: #0e3020; background: #05120c; }
+.hbox-label { font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.hcheck { color: var(--green); font-size: 13px; }
+.hbox-items { font-size: 10px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+.prompt-area { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-top: 10px; }
+.prompt-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.prompt-hdr span { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+.copy-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 5px; padding: 4px 11px; font-size: 11px; color: var(--text); cursor: pointer; transition: all .12s; }
+.copy-btn:hover { background: var(--surface3); }
+.copy-btn.copied { background: #062010; border-color: #0e3a1a; color: var(--green); }
+#promptText { font-size: 12px; line-height: 1.75; color: #9090b8; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="header-wordmark">SWEY <span>AIOS</span> — Revenue Intelligence</div>
+    <div class="header-sub">Hormozi-strukturált termékpiramis · Magyar KKV piac · 2026</div>
+  </div>
+  <div class="header-right">
+    <span class="htag">4/4 offer type ✓</span>
+    <span class="htag" id="headerArr">—</span>
+  </div>
+</header>
+
+<div class="tab-nav">
+  <button class="tab-btn active" id="tabPyramid" onclick="switchTab('pyramid')">Termékpiramis</button>
+  <button class="tab-btn" id="tabFunnel" onclick="switchTab('funnel')">Funnel</button>
+  <button class="tab-btn" id="tabCalc" onclick="switchTab('calc')">Bevételi Kalkulátor</button>
+  <button class="tab-btn" id="tabChannels" onclick="switchTab('channels')">Szerzési Csatornák</button>
+</div>
+
+<!-- ── TAB: PYRAMID ─────────────────────────────────────── -->
+<div id="viewPyramid">
+  <div class="layout">
+    <div class="pyramid-wrap">
+      <div class="pyramid-legend">
+        <span>▲ Magas érték · Kevés ügyfél</span>
+        <span>▼ Alacsony belépési korlát · Sok ügyfél</span>
+      </div>
+      <div class="pyramid-inner" id="pyramidInner"></div>
+    </div>
+    <div class="sidebar">
+      <div class="card detail-panel">
+        <div class="card-title" id="sidebarDetailTitle">Tier részletek</div>
+        <div id="detailEmpty" class="detail-empty">Hover egy tier felett a részletekért</div>
+        <div id="detailContent" style="display:none">
+          <div class="cat-chip" id="detailCat"></div>
+          <div class="detail-name" id="detailName"></div>
+          <div class="detail-sub" id="detailSub"></div>
+          <div class="detail-price" id="detailPrice"></div>
+          <div class="detail-grid" id="detailGrid"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Launch stratégia</div>
+        <div class="preset-btns" id="presetBtns"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Megjelenítés</div>
+        <div class="trow"><span>Bevételi sáv</span><button class="tgl on" id="tglRev" onclick="doToggle('showRev','tglRev')"></button></div>
+        <div class="trow"><span>Árak</span><button class="tgl on" id="tglPrices" onclick="doToggle('showPrices','tglPrices')"></button></div>
+        <div class="trow"><span>Flow nyilak</span><button class="tgl on" id="tglArrows" onclick="doToggle('showArrows','tglArrows')"></button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TAB: FUNNEL ──────────────────────────────────────── -->
+<div id="viewFunnel" style="display:none">
+  <div class="layout">
+    <div class="funnel-wrap"><svg id="funnelSvg"></svg></div>
+    <div class="sidebar">
+      <div class="card detail-panel">
+        <div class="card-title">Tier részletek</div>
+        <div id="detailEmpty2" class="detail-empty">Hover egy tier felett</div>
+        <div id="detailContent2" style="display:none">
+          <div class="cat-chip" id="detailCat2"></div>
+          <div class="detail-name" id="detailName2"></div>
+          <div class="detail-sub" id="detailSub2"></div>
+          <div class="detail-price" id="detailPrice2"></div>
+          <div class="detail-grid" id="detailGrid2"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Stratégia</div>
+        <div class="preset-btns" id="presetBtns2"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TAB: CALCULATOR ──────────────────────────────────── -->
+<div id="viewCalc" style="display:none">
+  <div class="calc-wrap">
+    <div class="calc-preset-row">
+      <span class="calc-preset-label">Preset:</span>
+      <button class="calc-preset-btn active" onclick="applyCalcPreset('conservative')">Konzervatív</button>
+      <button class="calc-preset-btn" onclick="applyCalcPreset('realistic')">Reális</button>
+      <button class="calc-preset-btn" onclick="applyCalcPreset('optimistic')">Optimista</button>
+    </div>
+    <div class="calc-header">
+      <div class="calc-header-cell">
+        <div class="label">Éves Bevétel (ARR)</div>
+        <div class="value gold" id="calcTotalArr">—</div>
+        <div class="sub" id="calcTotalMo">Havi átlag: —</div>
+      </div>
+      <div class="calc-header-cell">
+        <div class="label">Aktív tier-ek</div>
+        <div class="value" id="calcActiveTiers">—</div>
+        <div class="sub">terméklépcsőből számítva</div>
+      </div>
+      <div class="calc-header-cell">
+        <div class="label">Legjobb tier</div>
+        <div class="value green" id="calcTopTier" style="font-size:13px">—</div>
+        <div class="sub" id="calcTopTierAmt">ARR hozzájárulás</div>
+      </div>
+    </div>
+    <div class="calc-tiers" id="calcTiers"></div>
+    <div class="calc-breakdown">
+      <div class="cb-title">Bevétel megoszlás tier-enként</div>
+      <div class="cb-bars" id="calcBars"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TAB: CHANNELS ────────────────────────────────────── -->
+<div id="viewChannels" style="display:none">
+  <div class="channels-wrap">
+    <div class="channels-main">
+      <div class="channels-grid-label">
+        <div class="ch-axis-label left">Elérés típusa</div>
+        <div class="ch-axis-label" style="color:#5b8;">☀ MELEG (ismert közönség)</div>
+        <div class="ch-axis-label" style="color:#58a;">❄ HIDEG (ismeretlen)</div>
+      </div>
+      <div class="channels-matrix" id="channelsMatrix"></div>
+    </div>
+    <div>
+      <div class="ch-detail" id="chDetail">
+        <div class="ch-detail-empty">Kattints egy csatornára a részletes stratégiáért és a megfelelő termékek listájáért.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── ALWAYS VISIBLE: HEALTH + PROMPT ─────────────────── -->
+<div class="bottom-section">
+  <div class="card">
+    <div class="card-title">Hormozi Money Model — Health Check</div>
+    <div class="health-grid" id="healthGrid"></div>
+  </div>
+  <!-- Learn Section -->
+  <div class="learn-section">
+    <div class="learn-toggle-row" onclick="toggleLearn()">
+      <span class="learn-toggle-icon" id="learnIcon">▶</span>
+      <span class="learn-toggle-label">Hormozi Keretrendszerek — Magyarázatok &amp; Referenciák</span>
+    </div>
+    <div class="learn-body" id="learnBody">
+      <div class="learn-grid" id="learnGrid"></div>
+      <div class="card-title" style="margin-top:10px;margin-bottom:8px;">Kötelező olvasmányok</div>
+      <div class="ref-grid" id="refGrid"></div>
+    </div>
+  </div>
+
+  <div class="prompt-area">
+    <div class="prompt-hdr">
+      <span>Prompt output</span>
+      <button class="copy-btn" id="copyBtn" onclick="copyPrompt()">Copy</button>
+    </div>
+    <div id="promptText"></div>
+  </div>
+</div>
+
+<script>
+/* ─── COLORS ─────────────────────────────────────────────── */
+const COLORS = {
+  retainer:    '#e8a020', 'dfy-full':'#f0c030', 'dfy-mid':'#e07830',
+  'dfy-quick': '#e86040', audit:'#b040d0', cohort:'#7048e8',
+  workshop:    '#5040cc', 'skool-premium':'#3060e0', 'skool-alap':'#2888d8',
+  free:        '#28b060'
+};
+
+const CAT = { attraction:'Attraction', continuity:'Continuity', mid:'Mid-Ticket', highticket:'High Ticket' };
+
+/* ─── TIERS DATA ─────────────────────────────────────────── */
+const TIERS = [
+  {
+    id:'retainer', label:'Havi AI Retainer', sub:'Folyamatos fejlesztés + support',
+    cat:'continuity', price:'200–400k HUF/hó', priceNum:300000,
+    fmt:'Havi retainer megállapodás', cap:'3-5 aktív retainer',
+    forStr:'DFY ügyfelek — hosszú távú partner', rev:.85, width:22,
+    calc: { type:'monthly-members',
+      sliders:[
+        { key:'members', label:'Aktív ügyfelek', min:1, max:10, step:1 },
+        { key:'price',   label:'Havidíj (HUF)',  min:100000, max:500000, step:25000 },
+      ],
+      defaults:{ conservative:{ members:2, price:200000 }, realistic:{ members:3, price:300000 }, optimistic:{ members:5, price:400000 } },
+      formula: v => v.members * v.price * 12,
+      formulaStr: v => v.members + ' ügyfél × ' + fmtK(v.price) + ' × 12 hó',
+    }
+  },
+  {
+    id:'dfy-full', label:'AI Business OS', sub:'DFY — 12 hetes teljes build',
+    cat:'highticket', price:'2 000 000 HUF', priceNum:2000000,
+    fmt:'Done-For-You · Teljes cég-transzformáció', cap:'2-4 projekt/év',
+    forStr:'Ambiciózus CEO-k — teljes AI átállás', rev:.9, width:30,
+    calc: { type:'project-yearly',
+      sliders:[
+        { key:'projects', label:'Projektek/év', min:1, max:6, step:1 },
+        { key:'price', label:'Projekt ár (HUF)', min:1000000, max:4000000, step:200000 },
+      ],
+      defaults:{ conservative:{ projects:2, price:2000000 }, realistic:{ projects:3, price:2000000 }, optimistic:{ projects:5, price:2400000 } },
+      formula: v => v.projects * v.price,
+      formulaStr: v => v.projects + ' projekt × ' + fmtK(v.price),
+    }
+  },
+  {
+    id:'dfy-mid', label:'AI Rendszer Projekt', sub:'DFY — 6 hetes build',
+    cat:'highticket', price:'1 000 000 HUF', priceNum:1000000,
+    fmt:'Done-For-You · Komplex rendszer', cap:'4-12 projekt/év',
+    forStr:'Növekvő cégek — komplex AI igény', rev:.75, width:38,
+    calc: { type:'project-yearly',
+      sliders:[
+        { key:'projects', label:'Projektek/év', min:1, max:12, step:1 },
+        { key:'price', label:'Projekt ár (HUF)', min:600000, max:2000000, step:100000 },
+      ],
+      defaults:{ conservative:{ projects:4, price:1000000 }, realistic:{ projects:7, price:1000000 }, optimistic:{ projects:12, price:1200000 } },
+      formula: v => v.projects * v.price,
+      formulaStr: v => v.projects + ' projekt × ' + fmtK(v.price),
+    }
+  },
+  {
+    id:'dfy-quick', label:'AI Quick Sprint', sub:'DFY — 2 hetes build',
+    cat:'highticket', price:'400 000 HUF', priceNum:400000,
+    fmt:'Done-For-You · Egy folyamat', cap:'12-36 projekt/év',
+    forStr:'KKV-k — első AI rendszer, alacsony kockázat', rev:.6, width:46,
+    calc: { type:'project-yearly',
+      sliders:[
+        { key:'projects', label:'Projektek/év', min:2, max:36, step:2 },
+        { key:'price', label:'Sprint ár (HUF)', min:200000, max:700000, step:50000 },
+      ],
+      defaults:{ conservative:{ projects:8, price:400000 }, realistic:{ projects:18, price:400000 }, optimistic:{ projects:30, price:480000 } },
+      formula: v => v.projects * v.price,
+      formulaStr: v => v.projects + ' sprint × ' + fmtK(v.price),
+    }
+  },
+  {
+    id:'audit', label:'AI Audit Nap', sub:'Diagnosztika → DFY gateway',
+    cat:'mid', price:'400–800k HUF', priceNum:600000,
+    fmt:'1 napos intenzív audit', cap:'2-5 audit/hó',
+    forStr:'CEO-k — megérteni akarják a helyzetet', rev:.5, width:54,
+    calc: { type:'project-monthly',
+      sliders:[
+        { key:'projects', label:'Auditok/hó', min:1, max:8, step:1 },
+        { key:'price', label:'Audit ár (HUF)', min:200000, max:1000000, step:50000 },
+      ],
+      defaults:{ conservative:{ projects:2, price:400000 }, realistic:{ projects:3, price:600000 }, optimistic:{ projects:5, price:700000 } },
+      formula: v => v.projects * v.price * 12,
+      formulaStr: v => v.projects + ' audit/hó × ' + fmtK(v.price) + ' × 12',
+    }
+  },
+  {
+    id:'cohort', label:'6-Hetes AI Cohort', sub:'Implementáló program',
+    cat:'mid', price:'199–399k HUF', priceNum:299000,
+    fmt:'6 hetes élő kohort', cap:'11+ fő/kohort (break-even)',
+    forStr:'Vállalkozók — maguk akarják buildeni', rev:.45, width:62,
+    calc: { type:'cohort',
+      sliders:[
+        { key:'cohorts',  label:'Kohortok/év', min:1, max:6, step:1 },
+        { key:'students', label:'Tanulók/kohort', min:5, max:30, step:1 },
+        { key:'price',    label:'Ár/fő (HUF)', min:100000, max:500000, step:25000 },
+      ],
+      defaults:{ conservative:{ cohorts:2, students:11, price:199000 }, realistic:{ cohorts:3, students:18, price:299000 }, optimistic:{ cohorts:5, students:25, price:349000 } },
+      formula: v => v.cohorts * v.students * v.price,
+      formulaStr: v => v.cohorts + ' kohort × ' + v.students + ' fő × ' + fmtK(v.price),
+    }
+  },
+  {
+    id:'workshop', label:'AI Fél/Egész Napos Workshop', sub:'Fél- vagy egész napos élő képzés',
+    cat:'mid', price:'150–250k HUF/fő', priceNum:200000,
+    fmt:'Fél- vagy egész napos élő training', cap:'4-15 esemény/év · 8-20 fő',
+    forStr:'Aktív tanulók — gyors diagnózis előtt', rev:.4, width:70,
+    calc: { type:'event',
+      sliders:[
+        { key:'events', label:'Események/év', min:1, max:20, step:1 },
+        { key:'seats',  label:'Résztvevők/alk.', min:4, max:25, step:1 },
+        { key:'price',  label:'Ár/fő (HUF)', min:50000, max:300000, step:10000 },
+      ],
+      defaults:{ conservative:{ events:4, seats:8, price:150000 }, realistic:{ events:8, seats:14, price:200000 }, optimistic:{ events:14, seats:20, price:250000 } },
+      formula: v => v.events * v.seats * v.price,
+      formulaStr: v => v.events + ' esemény × ' + v.seats + ' fő × ' + fmtK(v.price),
+    }
+  },
+  {
+    id:'skool-premium', label:'Skool Prémium', sub:'Havi közösség + coaching hívások',
+    cat:'continuity', price:'19 900 HUF/hó', priceNum:19900,
+    fmt:'Skool közösség + live Q&A', cap:'20-60 aktív tag',
+    forStr:'Elkötelezett tagok — aktív implementálók', rev:.35, width:78,
+    calc: { type:'monthly-members',
+      sliders:[
+        { key:'members', label:'Prémium tagok', min:5, max:100, step:5 },
+        { key:'price',   label:'Havidíj (HUF)', min:10000, max:30000, step:1000 },
+      ],
+      defaults:{ conservative:{ members:15, price:19900 }, realistic:{ members:30, price:19900 }, optimistic:{ members:60, price:24900 } },
+      formula: v => v.members * v.price * 12,
+      formulaStr: v => v.members + ' tag × ' + fmtK(v.price) + ' × 12 hó',
+    }
+  },
+  {
+    id:'skool-alap', label:'Skool Alap', sub:'Belépő havidíjas közösség',
+    cat:'continuity', price:'9 900 HUF/hó', priceNum:9900,
+    fmt:'Skool közösség · Tartalmak + hálózat', cap:'50-200 tag',
+    forStr:'Érdeklődők — önálló tanulók', rev:.3, width:87,
+    calc: { type:'monthly-members',
+      sliders:[
+        { key:'members', label:'Alap tagok', min:20, max:300, step:10 },
+        { key:'price',   label:'Havidíj (HUF)', min:5000, max:15000, step:500 },
+      ],
+      defaults:{ conservative:{ members:50, price:9900 }, realistic:{ members:100, price:9900 }, optimistic:{ members:200, price:9900 } },
+      formula: v => v.members * v.price * 12,
+      formulaStr: v => v.members + ' tag × ' + fmtK(v.price) + ' × 12 hó',
+    }
+  },
+  {
+    id:'free', label:'Ingyenes Belépő', sub:'AI Kvíz + Free Skool Community',
+    cat:'attraction', price:'Ingyenes', priceNum:0,
+    fmt:'Online kvíz + nyílt közösség', cap:'∞ kapacitás',
+    forStr:'Mindenki — hideg közönség · Content traffic', rev:0, width:100,
+    calc:null
+  },
+];
+
+/* ─── PRESETS ─────────────────────────────────────────────── */
+const PRESETS = [
+  { id:'community', name:'Community-First', desc:'Skool közösség → Workshop → DFY',
+    flow:['free','skool-alap','skool-premium','workshop','cohort','dfy-quick'],
+    highlight:['skool-alap','skool-premium'],
+    entry:'Tartalom (YouTube · LinkedIn · Telegram)',
+    convs:[null,.20,.25,.18,.28,.22] },
+  { id:'workshop', name:'Workshop-First', desc:'Webinar → Workshop → DFY',
+    flow:['free','workshop','audit','dfy-mid','retainer'],
+    highlight:['workshop','audit'],
+    entry:'Webinar · Közvetlen regisztráció',
+    convs:[null,.08,.32,.45,.60] },
+  { id:'dfy', name:'DFY-First', desc:'Audit Nap → DFY → Retainer',
+    flow:['free','audit','dfy-quick','dfy-mid','retainer'],
+    highlight:['audit','dfy-mid','retainer'],
+    entry:'Közvetlen megkeresés · Ajánlás',
+    convs:[null,.06,.50,.40,.60] },
+];
+
+/* ─── HORMOZI CORE 4 CHANNELS ───────────────────────────── */
+const CHANNELS = [
+  {
+    id:'content', name:'Tartalom & Content', nameEn:'Post Content — 1:Sok · Meleg',
+    icon:'📢', quadrant:'warm-many',
+    labelText:'1:Sok · Meleg', labelStyle:'background:#0d2b18;color:#4ade80;border-color:#1a5030',
+    desc:'YouTube, LinkedIn, Telegram posztok. Értéket adsz, aztán kérsz. Csak értékorientált tartalommal — soha hirdetésre szabva. Hook-Retain-Reward formula minden posztban.',
+    hormozi:'Rule of 100: napi 100 perc tartalom alkotás, 100 napon keresztül. Ne mérj 30 nap előtt.',
+    rule100:'100 perc/nap',
+    ltgp:'A tartalom organikus — LTGP:CAC 30-100x+ lehetséges. Türelmet igényel.',
+    color:'#28c76f',
+    tiers:['free','skool-alap','skool-premium','workshop','cohort'],
+    presets:['community'],
+    fullStrategy:'Hormozi Give:Ask arány: 5 értékes tartalom : 1 CTA. Az ingyenes kvíz a hook, a Free Skool a landing. Onnan email → Skool Alap. Workshop annonce a Prémium tagoknak. Cohort a legaktívabbaknak.',
+  },
+  {
+    id:'paid', name:'Fizetett Hirdetések', nameEn:'Paid Ads — 1:Sok · Hideg',
+    icon:'💸', quadrant:'cold-many',
+    labelText:'1:Sok · Hideg', labelStyle:'background:#0d1a30;color:#60a5fa;border-color:#1a3050',
+    desc:'Meta, LinkedIn, Google hirdetések hideg közönségnek. Lead magnet vagy webinar az átjáró. Soha ne hirdesd közvetlenül a drága terméket.',
+    hormozi:'LTGP:CAC ≥ 3:1 szükséges ahhoz, hogy skálázható legyen. Mielőtt hirdetsz: tudd a számodat.',
+    rule100:'$100/nap tesztelési minimum',
+    ltgp:'LTGP:CAC célja ≥ 3:1. Ha kisebb → növeld a LTGP-t (upsell), ne csökkentsd a CAC-t.',
+    color:'#3b82f6',
+    tiers:['free','skool-alap','workshop'],
+    presets:['community','workshop'],
+    fullStrategy:'Hirdetés → Ingyenes Kvíz/Lead magnet → Email szekvencia → Skool Alap (9 900 Ft/hó). A community finanszírozza a hirdetési kiadásokat. Közepes szintű terméket (Workshop) csak meleg közönségnek hirdesd.',
+  },
+  {
+    id:'warm', name:'Meleg Megkeresés', nameEn:'Warm Outreach — 1:1 · Meleg',
+    icon:'🤝', quadrant:'warm-one',
+    labelText:'1:1 · Meleg', labelStyle:'background:#2e1800;color:#fb923c;border-color:#6a3010',
+    desc:'Meglévő kapcsolati háló, referrálások, korábbi ügyfelek reaktiválása. ACA Framework: Acknowledge → Compliment → Ask. Soha nem hideget.',
+    hormozi:'Rule of 100: 100 személyes megkeresés naponta, 100 napon át. Kapcsolati hálón belül.',
+    rule100:'100 megkeresés/nap',
+    ltgp:'Warm outreach-nél a CAC közel nulla — LTGP:CAC tízes vagy százas nagyságrendű.',
+    color:'#f97316',
+    tiers:['audit','dfy-quick','dfy-mid','dfy-full','retainer'],
+    presets:['dfy','workshop'],
+    fullStrategy:'ACA lépések: (1) Felismerd — kommentálj/lájkolj előtte. (2) Dicsérj valami valósat a munkájukból. (3) Kérd az Audit Napot mint belépőt. 6 ajánlásból 1 DFY projekt — szükségszerűen. Referral rendszer: minden DFY ügyfélnek adj 10% jutalékot.',
+  },
+  {
+    id:'cold', name:'Hideg Megkeresés', nameEn:'Cold Outreach — 1:1 · Hideg',
+    icon:'❄️', quadrant:'cold-one',
+    labelText:'1:1 · Hideg', labelStyle:'background:#160e30;color:#a78bfa;border-color:#30206a',
+    desc:'LinkedIn DM, hideg email célzott CEO-knak. Legjobban az Audit Nap belépőre működik — alacsony kockázat, konkrét érték. Nem direkt DFY-t kérsz elsőre.',
+    hormozi:'Rule of 100: 100 hideg megkeresés naponta, 100 napon. 3 problémából 3 megoldás a framework.',
+    rule100:'100 megkeresés/nap',
+    ltgp:'Cold outreach CAC alacsony de időigényes. LTGP:CAC 10-30x reálisan elérhető.',
+    color:'#8b5cf6',
+    tiers:['audit','dfy-quick'],
+    presets:['dfy'],
+    fullStrategy:'Célzás: 50-200 főt foglalkoztató KKV CEO-k, specifikus szektorokban. Üzenet: konkrét fájdalompont + Audit Nap mint ingyenes diagnózis ajánlat (ahol ők fizetnek, de te megmutatod az értéket). Konverziós cél: audit → DFY Quick Sprint 50%+ arányban.',
+  },
+];
+
+/* ─── HEALTH ─────────────────────────────────────────────── */
+const HEALTH = [
+  { type:'Attraction',  pass:true, items:'AI Kvíz, Free Skool, Content engine' },
+  { type:'Upsell',      pass:true, items:'Community → Workshop → DFY (3 path)' },
+  { type:'Downsell',    pass:true, items:'2M → 1M → 400k → Cohort 199k' },
+  { type:'Continuity',  pass:true, items:'Skool sub + Havi Retainer' },
+];
+
+/* ─── STATE ──────────────────────────────────────────────── */
+const state = {
+  hovered:null, active:null, preset:'community',
+  showRev:true, showPrices:true, showArrows:true,
+  tab:'pyramid',
+  sliders:{},       // { tierId: { key: value } }
+  calcPreset:'conservative',
+  activeChannel:null,
+};
+
+/* ─── SLIDER DEFAULTS INIT ───────────────────────────────── */
+function initSliders(presetKey) {
+  TIERS.forEach(t => {
+    if (!t.calc) return;
+    const defs = t.calc.defaults[presetKey] || t.calc.defaults.realistic;
+    state.sliders[t.id] = { ...defs };
+  });
+}
+initSliders('conservative');
+
+/* ─── UTILS ──────────────────────────────────────────────── */
+function getPreset() { return PRESETS.find(p => p.id === state.preset); }
+function getTier(id) { return TIERS.find(t => t.id === id); }
+function mk(tag, cls) { const e = document.createElement(tag); if (cls) e.className = cls; return e; }
+function txt(el, t) { el.textContent = t; return el; }
+function s(tag) { return document.createElementNS('http://www.w3.org/2000/svg', tag); }
+function sa(el, attrs) { Object.entries(attrs).forEach(([k,v]) => el.setAttribute(k, v)); return el; }
+
+function fmtHuf(n) {
+  if (n >= 1_000_000) return (n/1_000_000).toFixed(1).replace('.',',') + ' M Ft';
+  if (n >= 1_000) return Math.round(n/1_000) + ' e Ft';
+  return n + ' Ft';
+}
+function fmtK(n) {
+  if (n >= 1_000_000) return (n/1_000_000).toFixed(1).replace('.',',') + 'M';
+  if (n >= 1_000) return Math.round(n/1_000) + 'k';
+  return String(n);
+}
+function fmtYear(n) {
+  if (n >= 1_000_000) return (n/1_000_000).toFixed(1).replace('.',',') + ' M Ft/év';
+  return fmtHuf(n) + '/év';
+}
+
+/* ─── TAB SWITCHING ──────────────────────────────────────── */
+const TABS = ['pyramid','funnel','calc','channels'];
+function switchTab(tab) {
+  state.tab = tab;
+  TABS.forEach(t => {
+    const id = 'view' + t.charAt(0).toUpperCase() + t.slice(1);
+    document.getElementById(id).style.display = t === tab ? '' : 'none';
+    const btnId = 'tab' + t.charAt(0).toUpperCase() + t.slice(1);
+    document.getElementById(btnId).className = 'tab-btn' + (t === tab ? ' active' : '');
+  });
+  if (tab === 'funnel') renderFunnel();
+  if (tab === 'calc') renderCalc();
+  if (tab === 'channels') renderChannels();
+}
+
+/* ─── PYRAMID ────────────────────────────────────────────── */
+function renderPyramid() {
+  const container = document.getElementById('pyramidInner');
+  const preset = getPreset();
+  while (container.firstChild) container.removeChild(container.firstChild);
+
+  TIERS.forEach((tier, i) => {
+    const color = COLORS[tier.id];
+    const inFlow = preset.flow.includes(tier.id);
+    const isHL = preset.highlight.includes(tier.id);
+    const isActive = state.active === tier.id;
+    const isChanLit = state.activeChannel && CHANNELS.find(c=>c.id===state.activeChannel)?.tiers.includes(tier.id);
+
+    if (i > 0) {
+      const prevInFlow = preset.flow.includes(TIERS[i-1].id);
+      if (state.showArrows) {
+        const ar = txt(mk('div','arrow-down'+(inFlow&&prevInFlow?' lit':'')), inFlow&&prevInFlow?'↓':'·');
+        container.appendChild(ar);
+      } else {
+        const sp = mk('div'); sp.style.height='2px'; container.appendChild(sp);
+      }
+    }
+
+    const row = mk('div','tier-row');
+    const classes = ['tier', isActive?'active':'', isHL?'highlighted':'',
+      !inFlow?'dimmed':'', isChanLit?'channel-lit':''].filter(Boolean).join(' ');
+    const el = mk('div', classes);
+    el.style.width = tier.width + '%';
+    el.style.background = color + (state.hovered===tier.id||isActive?'cc':'30');
+    el.style.borderLeft = '3px solid ' + color;
+
+    el.appendChild(txt(mk('span','tier-name'), tier.label));
+
+    const right = mk('div','tier-right');
+    if (state.showPrices) right.appendChild(txt(mk('span','tier-price'), tier.price));
+    const badge = txt(mk('span','tier-badge'), CAT[tier.cat]);
+    badge.style.color = color;
+    right.appendChild(badge);
+    el.appendChild(right);
+
+    if (state.showRev && tier.rev > 0) {
+      const bar = mk('div','rev-bar');
+      bar.style.background = color;
+      bar.style.width = 'calc('+(tier.rev*100)+'% - 20px)';
+      el.appendChild(bar);
+    }
+
+    el.addEventListener('mouseenter', () => { state.hovered=tier.id; showDetail(tier); renderPyramid(); });
+    el.addEventListener('mouseleave', () => { state.hovered=null; if (!state.active) hideDetail(); renderPyramid(); });
+    el.addEventListener('click', () => {
+      state.active = state.active===tier.id ? null : tier.id;
+      state.active ? showDetail(getTier(state.active)) : hideDetail();
+      renderPyramid();
+    });
+    row.appendChild(el);
+    container.appendChild(row);
+  });
+
+  // Update header ARR tag
+  const arr = calcTotalArr();
+  txt(document.getElementById('headerArr'), fmtYear(arr));
+}
+
+/* ─── FUNNEL FLOWCHART ───────────────────────────────────── */
+/* ─── FUNNEL NODE GRAPH DATA ──────────────────────────────── */
+const FNODES = {
+  tc: { x:20,  y:0,   w:140, h:36, label:'Tartalom',       sub:'YT·LI·TG·Podcast', color:'#28c76f', isTraffic:true },
+  tp: { x:170, y:0,   w:140, h:36, label:'Paid Ads',        sub:'Meta·LinkedIn·Google', color:'#3b82f6', isTraffic:true },
+  tw: { x:455, y:0,   w:135, h:36, label:'Meleg Outreach',  sub:'ACA Framework', color:'#f97316', isTraffic:true },
+  td: { x:600, y:0,   w:130, h:36, label:'Hideg Outreach',  sub:'CEO targeting', color:'#8b5cf6', isTraffic:true },
+  free:    { x:80,  y:55,  w:385, h:44, tierId:'free' },
+  sa_:     { x:15,  y:148, w:185, h:42, tierId:'skool-alap' },
+  sp_:     { x:15,  y:252, w:185, h:42, tierId:'skool-premium' },
+  ws_:     { x:228, y:155, w:205, h:42, tierId:'workshop' },
+  co_:     { x:228, y:268, w:205, h:42, tierId:'cohort' },
+  dq_:     { x:543, y:82,  w:180, h:42, tierId:'dfy-quick' },
+  au_:     { x:80,  y:362, w:385, h:46, tierId:'audit' },
+  dm_:     { x:488, y:450, w:180, h:42, tierId:'dfy-mid' },
+  df_:     { x:488, y:550, w:180, h:42, tierId:'dfy-full' },
+  re_:     { x:80,  y:645, w:385, h:46, tierId:'retainer' },
+};
+
+const FEDGES = [
+  // Traffic → Entry
+  { f:'tc',  t:'free', fa:'bottom', ta:'top-left',   type:'traffic',   label:'Organikus traffic' },
+  { f:'tp',  t:'free', fa:'bottom', ta:'top',         type:'traffic',   label:'Lead magnet' },
+  { f:'tw',  t:'dq_',  fa:'bottom', ta:'top',         type:'direct',    label:'ACA · meleg' },
+  { f:'td',  t:'dq_',  fa:'bottom', ta:'top',         type:'direct',    label:'CEO lista' },
+  // Community path
+  { f:'free', t:'sa_',  fa:'bottom-left',  ta:'top',  type:'upsell',   label:'20%' },
+  { f:'sa_',  t:'sp_',  fa:'bottom',       ta:'top',  type:'upsell',   label:'25% upgrade' },
+  { f:'sp_',  t:'ws_',  fa:'right',        ta:'left', type:'upsell',   label:'aktív tag → event' },
+  // Workshop path
+  { f:'free', t:'ws_',  fa:'bottom',       ta:'top',  type:'upsell',   label:'8%' },
+  { f:'ws_',  t:'co_',  fa:'bottom',       ta:'top',  type:'upsell',   label:'30%' },
+  { f:'ws_',  t:'au_',  fa:'bottom',       ta:'top-left', type:'upsell', label:'35% → audit' },
+  { f:'co_',  t:'au_',  fa:'bottom',       ta:'top',  type:'upsell',   label:'45% → audit' },
+  // DFY Quick direct path
+  { f:'dq_',  t:'au_',  fa:'bottom',       ta:'top-right', type:'direct', label:'50% gateway' },
+  // Audit → DFY
+  { f:'au_',  t:'dm_',  fa:'bottom-right', ta:'top',  type:'upsell',   label:'50%' },
+  { f:'au_',  t:'df_',  fa:'bottom-right', ta:'top',  type:'upsell',   label:'25% full build' },
+  // DFY → Retainer
+  { f:'dm_',  t:'re_',  fa:'bottom',       ta:'top-right', type:'upsell', label:'65%' },
+  { f:'df_',  t:'re_',  fa:'bottom',       ta:'right', type:'upsell',   label:'70%' },
+  { f:'dq_',  t:'re_',  fa:'bottom',       ta:'right', type:'dashed',   label:'small project' },
+  // Downsell path (right side, going upward = cheaper alternative)
+  { f:'df_',  t:'dm_',  fa:'right',        ta:'right', type:'downsell', label:'↓ 1M Ft' },
+  { f:'dm_',  t:'dq_',  fa:'right',        ta:'right', type:'downsell', label:'↓ 400k Ft' },
+  { f:'dq_',  t:'co_',  fa:'left',         ta:'right', type:'downsell', label:'DIY helyett' },
+];
+
+function gPt(nid, anchor) {
+  const n = FNODES[nid];
+  const cx = n.x + n.w/2, cy = n.y + n.h/2;
+  const anchors = {
+    'top':          [cx,       n.y],
+    'bottom':       [cx,       n.y+n.h],
+    'left':         [n.x,      cy],
+    'right':        [n.x+n.w,  cy],
+    'top-left':     [n.x+n.w*0.3, n.y],
+    'top-right':    [n.x+n.w*0.7, n.y],
+    'bottom-left':  [n.x+n.w*0.3, n.y+n.h],
+    'bottom-right': [n.x+n.w*0.7, n.y+n.h],
+  };
+  return anchors[anchor] || [cx, n.y+n.h];
+}
+
+function renderFunnel() {
+  const svg = document.getElementById('funnelSvg');
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+  const preset = getPreset();
+  const VW = 740, totalH = 710;
+  sa(svg, { viewBox:'0 0 '+VW+' '+totalH, width:'100%', height:totalH, style:'overflow:visible' });
+
+  // Zone labels
+  const zones = [
+    { y:0,   label:'① SZERZÉSI CSATORNÁK' },
+    { y:50,  label:'② BELÉPŐ' },
+    { y:140, label:'③ NURTURE & KONVERZIÓ' },
+    { y:355, label:'④ DIAGNOSZTIKA (Gateway)' },
+    { y:445, label:'⑤ HIGH-TICKET DFY' },
+    { y:638, label:'⑥ RETAINER (LTV max)' },
+  ];
+  zones.forEach(z => {
+    const el = sa(s('text'), { x:VW-8, y:z.y+13, 'font-family':'DM Mono,monospace',
+      'font-size':'9', fill:'#333355', 'text-anchor':'end', 'letter-spacing':'0.5' });
+    el.textContent = z.label;
+    svg.appendChild(el);
+  });
+
+  // Draw edges first (behind nodes)
+  const edgeLayer = s('g'); svg.appendChild(edgeLayer);
+  FEDGES.forEach(e => drawGEdge(edgeLayer, e, preset));
+
+  // Draw nodes on top
+  Object.entries(FNODES).forEach(([nid, n]) => {
+    const tier = n.tierId ? getTier(n.tierId) : null;
+    const inFlow = tier && preset.flow.includes(tier.id);
+    const isHL   = tier && preset.highlight.includes(tier.id);
+    const arr    = tier && tier.calc ? calcTierArr(tier) : 0;
+    const revLabel = arr > 0 ? fmtYear(arr) : '';
+    drawGNode(svg, nid, n, { tier, inFlow, isHL, revLabel });
+  });
+}
+
+function drawGNode(svg, nid, n, { tier, inFlow, isHL, revLabel }) {
+  const color = tier ? COLORS[tier.id] : (n.color || '#555');
+  const g = s('g');
+  if (tier) {
+    g.style.cursor = 'pointer';
+    g.addEventListener('mouseenter', () => { state.hovered=tier.id; showDetail2(tier); });
+    g.addEventListener('mouseleave', () => { state.hovered=null; if(!state.active) hideDetail2(); });
+    g.addEventListener('click', () => {
+      state.active = state.active===tier.id?null:tier.id;
+      state.active ? showDetail2(tier) : hideDetail2();
+    });
+  }
+
+  const opacity = n.isTraffic ? 1 : (inFlow || !tier ? 1 : 0.22);
+  const strokeW = isHL ? '2' : '1';
+  const fillA   = isHL ? '22' : '14';
+  const strokeA = isHL ? 'cc' : '55';
+
+  const rect = sa(s('rect'), { x:n.x, y:n.y, width:n.w, height:n.h, rx:6,
+    fill: color+fillA, stroke: color+strokeA, 'stroke-width': strokeW,
+    opacity: String(opacity) });
+  if (n.isTraffic) rect.setAttribute('stroke-dasharray','5,3');
+  g.appendChild(rect);
+
+  // Left accent bar (non-traffic)
+  if (!n.isTraffic) {
+    g.appendChild(sa(s('rect'), { x:n.x, y:n.y, width:3, height:n.h, rx:2,
+      fill:color, opacity:String(opacity) }));
+  }
+
+  const label = tier ? tier.label : n.label;
+  const sub   = tier ? tier.price : n.sub;
+  const labelY = sub ? n.y+n.h/2-5 : n.y+n.h/2+5;
+
+  const labelEl = sa(s('text'), { x:n.isTraffic ? n.x+n.w/2 : n.x+14,
+    y:labelY, 'font-family':'Syne,sans-serif', 'font-size':'12',
+    'font-weight':'600', fill:'#d4d4ea', 'text-anchor': n.isTraffic?'middle':'start',
+    opacity:String(opacity) });
+  labelEl.textContent = label;
+  g.appendChild(labelEl);
+
+  if (sub) {
+    const subEl = sa(s('text'), { x: n.isTraffic ? n.x+n.w/2 : n.x+14,
+      y: n.y+n.h/2+13, 'font-family':'DM Mono,monospace', 'font-size':'10',
+      fill:'#666688', 'text-anchor': n.isTraffic?'middle':'start',
+      opacity:String(opacity) });
+    subEl.textContent = sub;
+    g.appendChild(subEl);
+  }
+
+  if (revLabel && inFlow) {
+    const rx2 = n.x + n.w + 8;
+    const pillW = revLabel.length * 6 + 10;
+    g.appendChild(sa(s('rect'), { x:rx2-3, y:n.y+n.h/2-9, width:pillW, height:18, rx:4,
+      fill:color+'15', stroke:color+'44', 'stroke-width':'1' }));
+    const revEl = sa(s('text'), { x:rx2+2, y:n.y+n.h/2+5,
+      'font-family':'DM Mono,monospace', 'font-size':'10', fill:color, 'font-weight':'600' });
+    revEl.textContent = revLabel;
+    g.appendChild(revEl);
+  }
+
+  svg.appendChild(g);
+}
+
+function drawGEdge(svg, edge, preset) {
+  const { f, t, fa='bottom', ta='top', type='upsell', label='' } = edge;
+  const fn = FNODES[f], tn = FNODES[t];
+  if (!fn || !tn) return;
+
+  const [fx, fy] = gPt(f, fa);
+  const [tx_, ty] = gPt(t, ta);
+  const color = fn.tierId ? COLORS[fn.tierId] : (fn.color || '#555');
+
+  // Determine if this edge is "active" in current preset
+  const fTier = fn.tierId, tTier = tn.tierId;
+  const inActive = (type==='traffic') ||
+    (fTier && tTier && preset.flow.includes(fTier) && preset.flow.includes(tTier));
+
+  const opacity = inActive ? (type==='downsell'?0.45:0.7) : 0.12;
+  const sw = type==='downsell' ? '1.5' : type==='traffic' ? '1.5' : '2';
+
+  // Bezier control points
+  const dx = tx_ - fx, dy = ty - fy;
+  let c1x, c1y, c2x, c2y;
+  if (fa==='right' && ta==='right') {
+    // Right-side staircase (downsell)
+    const rx = Math.max(fx, tx_) + 28;
+    c1x=rx; c1y=fy; c2x=rx; c2y=ty;
+  } else if (fa==='right' && ta==='left') {
+    // Cross connection
+    c1x=fx+50; c1y=fy; c2x=tx_-50; c2y=ty;
+  } else if (fa==='left' && ta==='right') {
+    c1x=fx-40; c1y=fy; c2x=tx_+40; c2y=ty;
+  } else {
+    // Generic vertical-ish
+    const v = Math.abs(dy)*0.4;
+    c1x = fx; c1y = fy + (dy>0?v:-v);
+    c2x = tx_; c2y = ty - (dy>0?v:-v);
+  }
+
+  const path = sa(s('path'), {
+    d:`M ${fx} ${fy} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${tx_} ${ty}`,
+    fill:'none', stroke:color, 'stroke-width':sw, 'stroke-opacity':String(opacity)
+  });
+  if (type==='downsell'||type==='dashed') path.setAttribute('stroke-dasharray','5,3');
+  svg.appendChild(path);
+
+  // Arrowhead
+  const ang = Math.atan2(ty-c2y, tx_-c2x);
+  const ah = 6;
+  svg.appendChild(sa(s('polygon'), {
+    points:`${tx_},${ty} ${tx_-ah*Math.cos(ang-0.45)},${ty-ah*Math.sin(ang-0.45)} ${tx_-ah*Math.cos(ang+0.45)},${ty-ah*Math.sin(ang+0.45)}`,
+    fill:color, 'fill-opacity':String(inActive?(type==='downsell'?0.45:0.7):0.12)
+  }));
+
+  // Label pill (only on active edges)
+  if (label && inActive && type!=='downsell') {
+    const lx = (fx+tx_)/2 + (Math.abs(dx)>80 ? 0 : 22);
+    const ly = (fy+ty)/2;
+    const pw = label.length*5.8+10;
+    svg.appendChild(sa(s('rect'), { x:lx-pw/2, y:ly-7.5, width:pw, height:15, rx:7.5,
+      fill:'#07070c', stroke:color, 'stroke-width':'0.8', 'stroke-opacity':'0.5' }));
+    const lt = sa(s('text'), { x:lx, y:ly+4.5, 'font-family':'DM Mono,monospace',
+      'font-size':'9.5', fill:color, 'text-anchor':'middle', 'fill-opacity':'0.9' });
+    lt.textContent = label;
+    svg.appendChild(lt);
+  }
+  if (label && type==='downsell' && inActive) {
+    const lx = Math.max(fx, tx_) + 34;
+    const ly = (fy+ty)/2;
+    const lt = sa(s('text'), { x:lx, y:ly+4, 'font-family':'DM Mono,monospace',
+      'font-size':'7.5', fill:color, 'fill-opacity':'0.6' });
+    lt.textContent = label;
+    svg.appendChild(lt);
+  }
+}
+
+/* ─── CALCULATOR ─────────────────────────────────────────── */
+function calcTierArr(tier) {
+  if (!tier.calc) return 0;
+  const defs = tier.calc.defaults.realistic;
+  const vals = { ...defs, ...(state.sliders[tier.id]||{}) };
+  return tier.calc.formula(vals);
+}
+
+function calcTotalArr() {
+  return TIERS.filter(t=>t.calc).reduce((sum,t) => sum + calcTierArr(t), 0);
+}
+
+function renderCalc() {
+  const container = document.getElementById('calcTiers');
+  while (container.firstChild) container.removeChild(container.firstChild);
+
+  let totalArr = 0;
+  const rows = [];
+
+  TIERS.forEach(tier => {
+    if (!tier.calc) return;
+    const color = COLORS[tier.id];
+    const vals = state.sliders[tier.id] || {};
+    const merged = { ...tier.calc.defaults.realistic, ...vals };
+    const arr = tier.calc.formula(merged);
+    totalArr += arr;
+    rows.push({ tier, arr, color });
+
+    const row = mk('div','calc-tier-row');
+
+    // Name col
+    const nameCol = mk('div');
+    const dot = mk('span','calc-tier-dot');
+    dot.style.background = color;
+    nameCol.appendChild(dot);
+    const n = txt(mk('span','calc-tier-name'), tier.label);
+    nameCol.appendChild(n);
+    nameCol.appendChild(txt(mk('div','calc-tier-type'), CAT[tier.cat] + ' · ' + tier.calc.type.replace(/-/g,' ')));
+    row.appendChild(nameCol);
+
+    // Sliders col
+    const slidersCol = mk('div','calc-sliders');
+    tier.calc.sliders.forEach(sl => {
+      const currentVal = merged[sl.key] !== undefined ? merged[sl.key] : sl.min;
+      const group = mk('div','slider-group');
+      const top = mk('div','slider-top');
+      top.appendChild(txt(mk('span','slider-label'), sl.label));
+
+      const valEl = mk('span','slider-val');
+      valEl.style.color = color;
+      const displayVal = sl.key==='price' || sl.key==='price' ? fmtHuf(currentVal) : String(currentVal);
+      txt(valEl, sl.key.includes('price') ? fmtHuf(currentVal) : String(currentVal));
+      top.appendChild(valEl);
+      group.appendChild(top);
+
+      const input = mk('input');
+      input.type='range'; input.min=sl.min; input.max=sl.max; input.step=sl.step;
+      input.value=currentVal;
+      input.style.accentColor = color;
+
+      input.addEventListener('input', () => {
+        const newVal = Number(input.value);
+        if (!state.sliders[tier.id]) state.sliders[tier.id] = {};
+        state.sliders[tier.id][sl.key] = newVal;
+        if (sl.key.includes('price')) txt(valEl, fmtHuf(newVal));
+        else txt(valEl, String(newVal));
+        updateCalcTotals();
+        updateCalcResult(tier.id, color);
+        updateCalcBars();
+        renderFunnelIfActive();
+        updateHeaderArr();
+      });
+
+      group.appendChild(input);
+      slidersCol.appendChild(group);
+    });
+    row.appendChild(slidersCol);
+
+    // Result col
+    const resultCol = mk('div','calc-tier-result');
+    const arrEl = txt(mk('div','calc-tier-arr'), fmtYear(arr));
+    arrEl.style.color = color;
+    arrEl.id = 'calc-arr-' + tier.id;
+    resultCol.appendChild(arrEl);
+    const moEl = txt(mk('div','calc-tier-mo'), '~' + fmtHuf(Math.round(arr/12)) + '/hó');
+    moEl.id = 'calc-mo-' + tier.id;
+    resultCol.appendChild(moEl);
+    const formulaEl = txt(mk('div','calc-tier-formula'), tier.calc.formulaStr(merged));
+    formulaEl.id = 'calc-formula-' + tier.id;
+    resultCol.appendChild(formulaEl);
+    row.appendChild(resultCol);
+
+    container.appendChild(row);
+  });
+
+  updateCalcTotals();
+  renderCalcBarsFromRows(rows, totalArr);
+}
+
+function updateCalcTotals() {
+  let total = 0, best = null, bestAmt = 0, activeCount = 0;
+  TIERS.forEach(t => {
+    if (!t.calc) return;
+    const arr = calcTierArr(t);
+    total += arr;
+    activeCount++;
+    if (arr > bestAmt) { bestAmt = arr; best = t; }
+    const el = document.getElementById('calc-arr-'+t.id);
+    const moEl = document.getElementById('calc-mo-'+t.id);
+    const fEl = document.getElementById('calc-formula-'+t.id);
+    if (el) { txt(el, fmtYear(arr)); }
+    if (moEl) txt(moEl, '~'+fmtHuf(Math.round(arr/12))+'/hó');
+    if (fEl) {
+      const vals = { ...t.calc.defaults.realistic, ...(state.sliders[t.id]||{}) };
+      txt(fEl, t.calc.formulaStr(vals));
+    }
+  });
+  txt(document.getElementById('calcTotalArr'), fmtYear(total));
+  txt(document.getElementById('calcTotalMo'), 'Havi átlag: '+fmtHuf(Math.round(total/12)));
+  txt(document.getElementById('calcActiveTiers'), String(activeCount));
+  if (best) {
+    const el = document.getElementById('calcTopTier');
+    txt(el, best.label);
+    el.style.color = COLORS[best.id];
+    txt(document.getElementById('calcTopTierAmt'), fmtYear(bestAmt));
+  }
+}
+
+function updateCalcResult(tierId, color) {
+  const t = getTier(tierId);
+  if (!t || !t.calc) return;
+  const arr = calcTierArr(t);
+  const el = document.getElementById('calc-arr-'+tierId);
+  const moEl = document.getElementById('calc-mo-'+tierId);
+  if (el) txt(el, fmtYear(arr));
+  if (moEl) txt(moEl, '~'+fmtHuf(Math.round(arr/12))+'/hó');
+}
+
+function updateCalcBars() {
+  let total = 0;
+  const rows = TIERS.filter(t=>t.calc).map(t => ({ tier:t, arr:calcTierArr(t), color:COLORS[t.id] }));
+  total = rows.reduce((s,r)=>s+r.arr,0);
+  renderCalcBarsFromRows(rows, total);
+}
+
+function renderCalcBarsFromRows(rows, total) {
+  const container = document.getElementById('calcBars');
+  while (container.firstChild) container.removeChild(container.firstChild);
+  const sorted = [...rows].sort((a,b)=>b.arr-a.arr);
+  sorted.forEach(({ tier, arr, color }) => {
+    const pct = total > 0 ? (arr/total)*100 : 0;
+    const row = mk('div','cb-bar-row');
+    row.appendChild(txt(mk('div','cb-name'), tier.label));
+    const track = mk('div','cb-track');
+    const fill = mk('div','cb-fill');
+    fill.style.width = pct+'%'; fill.style.background = color;
+    track.appendChild(fill); row.appendChild(track);
+    row.appendChild(txt(mk('div','cb-pct'), Math.round(pct)+'%'));
+    row.appendChild(txt(mk('div','cb-amt'), fmtYear(arr)));
+    container.appendChild(row);
+  });
+}
+
+function applyCalcPreset(presetKey) {
+  state.calcPreset = presetKey;
+  document.querySelectorAll('.calc-preset-btn').forEach(b => {
+    b.className = 'calc-preset-btn' + (b.textContent.toLowerCase().includes(presetKey.substr(0,4)) ? ' active' : '');
+  });
+  // Fix button text matching
+  const map = { conservative:'Konzervatív', realistic:'Reális', optimistic:'Optimista' };
+  document.querySelectorAll('.calc-preset-btn').forEach(b => {
+    const k = Object.entries(map).find(([k,v]) => b.textContent.includes(v));
+    if (k) b.className = 'calc-preset-btn' + (k[0]===presetKey?' active':'');
+  });
+  initSliders(presetKey);
+  renderCalc();
+  updateHeaderArr();
+}
+
+function updateHeaderArr() {
+  txt(document.getElementById('headerArr'), fmtYear(calcTotalArr()));
+}
+
+function renderFunnelIfActive() {
+  if (state.tab==='funnel') renderFunnel();
+}
+
+/* ─── CHANNELS ───────────────────────────────────────────── */
+function renderChannels() {
+  const matrix = document.getElementById('channelsMatrix');
+  while (matrix.firstChild) matrix.removeChild(matrix.firstChild);
+
+  // Row labels + channel cards in 2x2
+  // Row 1: 1:Sok
+  const row1Label = mk('div','ch-row-label');
+  const r1inner = mk('div','ch-row-label-inner');
+  txt(r1inner,'1:SOK\nTömeg'); row1Label.appendChild(r1inner);
+  matrix.appendChild(row1Label);
+  buildChannelCard(matrix, CHANNELS.find(c=>c.id==='content'));
+  buildChannelCard(matrix, CHANNELS.find(c=>c.id==='paid'));
+
+  // Row 2: 1:1
+  const row2Label = mk('div','ch-row-label');
+  const r2inner = mk('div','ch-row-label-inner');
+  txt(r2inner,'1:1\nSzemélyesen'); row2Label.appendChild(r2inner);
+  matrix.appendChild(row2Label);
+  buildChannelCard(matrix, CHANNELS.find(c=>c.id==='warm'));
+  buildChannelCard(matrix, CHANNELS.find(c=>c.id==='cold'));
+
+  // If a channel is active, show detail
+  if (state.activeChannel) showChannelDetail(CHANNELS.find(c=>c.id===state.activeChannel));
+  else showChannelDetailEmpty();
+}
+
+function buildChannelCard(parent, ch) {
+  const card = mk('div','ch-card'+(state.activeChannel===ch.id?' active':''));
+  card.style.borderColor = state.activeChannel===ch.id ? ch.color+'88' : '';
+  card.style.background = state.activeChannel===ch.id ? ch.color+'08' : '';
+
+  const header = mk('div','ch-card-header');
+  header.appendChild(txt(mk('span','ch-icon'), ch.icon));
+  const titles = mk('div','ch-card-titles');
+  titles.appendChild(txt(mk('div','ch-name'), ch.name));
+  titles.appendChild(txt(mk('div','ch-name-en'), ch.nameEn));
+  const label = txt(mk('span','ch-label'), ch.labelText);
+  label.setAttribute('style', ch.labelStyle+';border:1px solid transparent;');
+  titles.appendChild(label);
+  header.appendChild(titles);
+  card.appendChild(header);
+
+  card.appendChild(txt(mk('div','ch-desc'), ch.desc));
+
+  const metric = mk('div','ch-metric');
+  metric.appendChild(txt(mk('span','ch-metric-icon'), '⚡'));
+  metric.appendChild(txt(mk('span','ch-metric-text'), 'Rule of 100'));
+  const mv = txt(mk('span','ch-metric-val'), ch.rule100);
+  mv.style.color = ch.color;
+  metric.appendChild(mv);
+  card.appendChild(metric);
+
+  const chipsRow = mk('div','ch-tiers');
+  ch.tiers.forEach(tid => {
+    const t = getTier(tid);
+    if (!t) return;
+    const chip = txt(mk('span','ch-tier-chip'), t.label.substring(0,20));
+    chip.style.background = COLORS[tid]+'22';
+    chip.style.color = COLORS[tid];
+    chip.style.borderColor = COLORS[tid]+'44';
+    chipsRow.appendChild(chip);
+  });
+  card.appendChild(chipsRow);
+
+  card.addEventListener('click', () => {
+    state.activeChannel = state.activeChannel===ch.id ? null : ch.id;
+    renderChannels();
+    renderPyramid(); // highlight relevant tiers
+  });
+
+  parent.appendChild(card);
+}
+
+function showChannelDetail(ch) {
+  const el = document.getElementById('chDetail');
+  while (el.firstChild) el.removeChild(el.firstChild);
+
+  const title = txt(mk('div','ch-detail-title'), ch.name);
+  title.style.color = ch.color;
+  el.appendChild(title);
+
+  const rule = mk('div','ch-rule100');
+  rule.appendChild(txt(mk('div','ch-rule100-label'), 'Hormozi Rule of 100'));
+  const rv = txt(mk('div','ch-rule100-value'), ch.rule100);
+  rv.style.color = ch.color;
+  rule.appendChild(rv);
+  rule.appendChild(txt(mk('div','ch-rule100-desc'), ch.hormozi));
+  el.appendChild(rule);
+
+  const strat = mk('div','ch-detail-section');
+  strat.appendChild(txt(mk('div','ch-detail-section-title'), 'Stratégia'));
+  strat.appendChild(txt(mk('div','ch-detail-text'), ch.fullStrategy));
+  el.appendChild(strat);
+
+  const ltgp = mk('div','ch-detail-section');
+  ltgp.appendChild(txt(mk('div','ch-detail-section-title'), 'LTGP:CAC'));
+  ltgp.appendChild(txt(mk('div','ch-detail-text'), ch.ltgp));
+  el.appendChild(ltgp);
+
+  const tiersSection = mk('div','ch-detail-section');
+  tiersSection.appendChild(txt(mk('div','ch-detail-section-title'), 'Célzott termékszintek'));
+  const tiersEl = mk('div','ch-detail-tiers');
+  ch.tiers.forEach(tid => {
+    const t = getTier(tid);
+    if (!t) return;
+    const row = mk('div','ch-detail-tier-row');
+    const dot = mk('div','ch-detail-tier-dot');
+    dot.style.background = COLORS[tid];
+    row.appendChild(dot);
+    row.appendChild(txt(mk('div','ch-detail-tier-name'), t.label));
+    row.appendChild(txt(mk('div','ch-detail-tier-price'), t.price));
+    tiersEl.appendChild(row);
+  });
+  tiersSection.appendChild(tiersEl);
+  el.appendChild(tiersSection);
+}
+
+function showChannelDetailEmpty() {
+  const el = document.getElementById('chDetail');
+  while (el.firstChild) el.removeChild(el.firstChild);
+  el.appendChild(txt(mk('div','ch-detail-empty'), 'Kattints egy csatornára a részletes stratégiáért és a megfelelő termékek listájáért.'));
+}
+
+/* ─── DETAIL PANELS ──────────────────────────────────────── */
+function showDetail(tier) {
+  _setDetail(tier, 'detailEmpty','detailContent','detailCat','detailName','detailSub','detailPrice','detailGrid');
+}
+function hideDetail() {
+  document.getElementById('detailEmpty').style.display='block';
+  document.getElementById('detailContent').style.display='none';
+}
+function showDetail2(tier) {
+  _setDetail(tier,'detailEmpty2','detailContent2','detailCat2','detailName2','detailSub2','detailPrice2','detailGrid2');
+}
+function hideDetail2() {
+  document.getElementById('detailEmpty2').style.display='block';
+  document.getElementById('detailContent2').style.display='none';
+}
+function _setDetail(tier, emptyId, contentId, catId, nameId, subId, priceId, gridId) {
+  const color = COLORS[tier.id];
+  document.getElementById(emptyId).style.display='none';
+  document.getElementById(contentId).style.display='block';
+  const cat=document.getElementById(catId);
+  cat.textContent=CAT[tier.cat]; cat.className='cat-chip cat-'+tier.cat;
+  txt(document.getElementById(nameId), tier.label);
+  txt(document.getElementById(subId), tier.sub);
+  const p=document.getElementById(priceId);
+  txt(p, tier.price); p.style.color=color;
+  const grid=document.getElementById(gridId);
+  while (grid.firstChild) grid.removeChild(grid.firstChild);
+  const di=(label,value,wide)=>{
+    const item=mk('div','di'+(wide?' di-wide':''));
+    item.appendChild(txt(mk('div','di-label'),label));
+    item.appendChild(txt(mk('div','di-value'),value));
+    return item;
+  };
+  grid.appendChild(di('Formátum',tier.fmt,false));
+  grid.appendChild(di('Kapacitás',tier.cap,false));
+  grid.appendChild(di('Kinek szól',tier.forStr,true));
+  if (tier.calc) {
+    const arr = calcTierArr(tier);
+    grid.appendChild(di('ARR (kalkulált)', fmtYear(arr), false));
+    grid.appendChild(di('Havi', fmtHuf(Math.round(arr/12)), false));
+  }
+}
+
+/* ─── PRESETS RENDER ─────────────────────────────────────── */
+function renderPresets(containerId) {
+  const c=document.getElementById(containerId);
+  while (c.firstChild) c.removeChild(c.firstChild);
+  PRESETS.forEach(p=>{
+    const btn=mk('button','pbtn'+(state.preset===p.id?' active':''));
+    btn.appendChild(txt(mk('div','pbtn-name'),p.name));
+    btn.appendChild(txt(mk('div','pbtn-desc'),p.desc));
+    btn.addEventListener('click',()=>{ state.preset=p.id; updateAll(); });
+    c.appendChild(btn);
+  });
+}
+
+/* ─── LEARN / EDUCATION ──────────────────────────────────── */
+const LEARN_DB = [
+  {
+    id:'attraction', color:'#28b060', title:'Attraction (Belépő ajánlat)',
+    what:'Az első „igen" megszerzésének eszköze. Nem profitszerzésre való — az a célja, hogy minél több ember kerüljön a rendszerbe. Ha valaki egyszer vásárolt, sokkal valószínűbb, hogy újra vásárol.',
+    quote:'"Give people what they want, and you\'ll get what you want." — Hormozi',
+    examples:[
+      'Ingyenes AI Kvíz + Free Skool community',
+      'Ingyenes audit konzultáció (30 perc)',
+      'Lead magnet: „Hogyan építs pénzgépet AI-val" útmutató',
+      'Pay Less Now (7 napos próba → rendes ár)',
+    ],
+    source:'$100M Money Models — Attraction Offers fejezet',
+  },
+  {
+    id:'upsell', color:'#7048e8', title:'Upsell (Felfelé adás)',
+    what:'Miután valaki belépett, három útvonal vezet a következő, drágább szintre: (1) Következő probléma — megoldottad A-t, most B a fájdalmuk. (2) Megoldás upgrade — DIY → DWY → DFY. (3) Tudatosítás — az alacsonyabb szint megmutatja a mélyebb problémát.',
+    quote:'"No means no for THIS thing. Not for everything." — Hormozi',
+    examples:[
+      'Skool Alap → Skool Prémium (megoldás upgrade)',
+      'Workshop → Cohort (következő probléma)',
+      'Audit Nap → DFY Quick Sprint (diagnosztika → implementáció)',
+    ],
+    source:'$100M Money Models — Upsell Offers fejezet',
+  },
+  {
+    id:'downsell', color:'#e07830', title:'Downsell (Lefelé mentés)',
+    what:'Amikor valaki azt mondja: „túl drága" — ne engedd el. A downsell nem engedmény, hanem csere: kevesebbet fizet, de kevesebbet is kap. Minden „nem" halott végpont. A downsell élővé teszi.',
+    quote:'"Trades, not discounts." — Hormozi',
+    examples:[
+      'AI Business OS 2M → Rendszer Projekt 1M → Quick Sprint 400k',
+      'DFY Quick Sprint → 6-Hetes Cohort (DIY verzió)',
+      'Cohort → Workshop (kisebb időigény)',
+      'Payment plan: 3×600k helyett 3×300k/hó (másik terméknél)',
+    ],
+    source:'$100M Money Models — Downsell Offers fejezet',
+  },
+  {
+    id:'continuity', color:'#e8a020', title:'Continuity (Ismétlődő bevétel)',
+    what:'A vállalkozás alapzata. Anélkül minden hónapban nulláról indul a bevétel. A havidíj vagy évi díj automatikusan érkezik, és finanszírozza a növekedést. Két alaptípus: community subscription és retainer.',
+    quote:'"If you don\'t have continuity, you\'re on a treadmill." — Hormozi',
+    examples:[
+      'Skool Alap: 9 900 HUF/hó · 50-200 tag',
+      'Skool Prémium: 19 900 HUF/hó · coaching hívásokkal',
+      'Havi AI Retainer: 200-400k HUF/hó · DFY ügyfelek',
+    ],
+    source:'$100M Money Models — Continuity Offers fejezet',
+  },
+  {
+    id:'rule100', color:'#3b82f6', title:'Rule of 100 (Lead gen alaptörvény)',
+    what:'Válassz EGY Core Four csatornát. Végezz 100 elsődleges akciót naponta, 100 napon keresztül. Csak ezután értékeld az eredményt. A legtöbb vállalkozó 2-3 hét után feladja — és soha nem tudja meg, hogy müküdött volna-e.',
+    quote:'"You don\'t have a leads problem. You have a not-doing-enough problem." — Hormozi',
+    examples:[
+      'Content: 100 perc alkotás/nap (videó, poszt, email)',
+      'Warm Outreach: 100 ACA megkeresés/nap',
+      'Cold Outreach: 100 hideg email vagy DM/nap',
+      'Paid Ads: $100/nap tesztelési minimum',
+    ],
+    source:'$100M Leads — Rule of 100 fejezet',
+  },
+  {
+    id:'ltgp', color:'#28c76f', title:'LTGP:CAC — A skálázás kulcsa',
+    what:'LTGP = Lifetime Gross Profit (ügyfél élettartam alatti bruttó nyereség). CAC = Customer Acquisition Cost (ügyfélszerzési költség). Ha LTGP:CAC < 3:1, nem érdemes hirdetésbe fektetni. Fix: növeld az LTGP-t (upsell, continuity), ne csökkentsd a CAC-t.',
+    quote:'"Advertising is letting people know about the stuff you sell. That\'s literally it." — Hormozi',
+    examples:[
+      'Skool Alap CAC: ~5 000 HUF (content) → LTGP: 118 800 HUF (1 év) → ratio: 24:1 ✓',
+      'DFY Quick CAC: ~50 000 HUF (meleg outreach) → LTGP: 400 000 HUF → ratio: 8:1 ✓',
+      'Ha Paid Ads-szel szerzel Skool tagot: adj upsellt hogy LTGP > 3×CAC legyen',
+    ],
+    source:'$100M Leads — Paid Advertising fejezet',
+  },
+  {
+    id:'core4', color:'#8b5cf6', title:'Core Four (4 alap szerzési módszer)',
+    what:'Minden lead a 4 alap módszer egyikéből érkezik. 1:1 meleg = warm outreach. 1:Sok meleg = content/social. 1:1 hideg = cold outreach. 1:Sok hideg = paid ads. Mester EGYET, mielőtt a következőre lépsz.',
+    quote:'"Simple scales, fancy fails." — Hormozi',
+    examples:[
+      '1:1 Meleg: LinkedIn DM meglévő kapcsolatoknak, ACA frameworkkel',
+      '1:Sok Meleg: YouTube, LinkedIn post, Telegram napi tartalom',
+      '1:1 Hideg: hideg email KKV CEO-knak (Audit Nap belépő)',
+      '1:Sok Hideg: Meta/LinkedIn hirdetés → Lead magnet',
+    ],
+    source:'$100M Leads — Core Four fejezetek',
+  },
+  {
+    id:'valueladder', color:'#e86040', title:'Value Ladder (Értéklépcső)',
+    what:'A termékpiramis „fordítottja": alul az olcsó/ingyenes belépő, felül a prémium. Az ügyfél fel-lefelé tud mozogni. A piramis minden szintje: (1) önállóan ad értéket, (2) természetesen vezet a következő szintre.',
+    quote:'"If McDonald\'s only sold burgers, they\'d have gone bankrupt." — Hormozi',
+    examples:[
+      'Ingyenes belépő → megmutatja a fizetős community értékét',
+      'Skool Prémium → élő hívások megmutatják a Workshop értékét',
+      'Audit Nap → diagnosztika megmutatja a DFY szükségességét',
+      'DFY projekt → bizalom épít → Retainer természetes következmény',
+    ],
+    source:'$100M Offers + $100M Money Models',
+  },
+];
+
+const REFS = [
+  {
+    book:'$100M Offers',
+    color:'#e8a020',
+    desc:'Hogyan csinálj olyan ajánlatot, amire nem lehet nemet mondani. Grand Slam Offer, Value Stack, árazási stratégia.',
+    chapters:'Value Stack · Scarcity/Urgency · Bonuses · Guarantees · Naming',
+  },
+  {
+    book:'$100M Money Models',
+    color:'#7048e8',
+    desc:'A 15 offer típus és a teljes pénzügyi modell. 4 kötelező szint: Attraction, Upsell, Downsell, Continuity.',
+    chapters:'Attraction (5) · Upsell (4) · Downsell (3) · Continuity (3) · Model építés',
+  },
+  {
+    book:'$100M Leads',
+    color:'#3b82f6',
+    desc:'Lead generálás a Core Four módszerrel. Rule of 100. LTGP:CAC. 7 szintű reklámozási roadmap.',
+    chapters:'Core Four · Rule of 100 · ACA Framework · Lead Magnets · Paid Ads · Affiliates',
+  },
+];
+
+function toggleLearn() {
+  const body = document.getElementById('learnBody');
+  const icon = document.getElementById('learnIcon');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  txt(icon, isOpen ? '▶' : '▼');
+  if (!isOpen) renderLearn();
+}
+
+function renderLearn() {
+  // Learn cards
+  const grid = document.getElementById('learnGrid');
+  if (grid.children.length > 0) return; // already rendered
+  LEARN_DB.forEach(item => {
+    const card = mk('div','learn-card');
+
+    const hdr = mk('div','learn-card-header');
+    hdr.addEventListener('click', () => {
+      const body = card.querySelector('.learn-card-body');
+      const chev = hdr.querySelector('.learn-card-chevron');
+      const open = body.classList.toggle('open');
+      chev.classList.toggle('open', open);
+    });
+    const dot = mk('span','learn-card-dot');
+    dot.style.background = item.color;
+    hdr.appendChild(dot);
+    hdr.appendChild(txt(mk('div','learn-card-title'), item.title));
+    hdr.appendChild(txt(mk('div','learn-card-chevron'), '▶'));
+    card.appendChild(hdr);
+
+    const body = mk('div','learn-card-body');
+    body.appendChild(txt(mk('div','learn-card-what'), item.what));
+
+    if (item.examples && item.examples.length) {
+      const exWrap = mk('div','learn-card-examples');
+      exWrap.appendChild(txt(mk('div','learn-card-ex-title'), 'SWEY-specifikus példák'));
+      item.examples.forEach(ex => {
+        exWrap.appendChild(txt(mk('div','learn-card-ex-item'), ex));
+      });
+      body.appendChild(exWrap);
+    }
+
+    if (item.quote) {
+      const q = mk('div','learn-quote');
+      q.textContent = item.quote;
+      body.appendChild(q);
+    }
+
+    const src = mk('div');
+    src.style.cssText = 'font-size:8px;color:#444466;margin-top:6px;font-family:var(--ff-mono)';
+    txt(src, '📖 ' + item.source);
+    body.appendChild(src);
+
+    card.appendChild(body);
+    grid.appendChild(card);
+  });
+
+  // Ref cards
+  const refGrid = document.getElementById('refGrid');
+  if (refGrid.children.length > 0) return;
+  REFS.forEach(ref => {
+    const card = mk('div','ref-card');
+    const title = txt(mk('div','ref-book'), ref.book);
+    title.style.color = ref.color;
+    card.appendChild(title);
+    card.appendChild(txt(mk('div','ref-desc'), ref.desc));
+    const ch = mk('div','ref-chapters');
+    ch.style.color = ref.color+'99';
+    txt(ch, 'Fejezetek: ' + ref.chapters);
+    card.appendChild(ch);
+    refGrid.appendChild(card);
+  });
+}
+
+/* ─── HEALTH ─────────────────────────────────────────────── */
+function renderHealth() {
+  const c=document.getElementById('healthGrid');
+  while (c.firstChild) c.removeChild(c.firstChild);
+  HEALTH.forEach(h=>{
+    const box=mk('div','hbox'+(h.pass?' pass':''));
+    const label=mk('div','hbox-label');
+    label.appendChild(txt(mk('span','hcheck'),h.pass?'✓':'✗'));
+    label.appendChild(txt(mk('span'),h.type));
+    box.appendChild(label);
+    box.appendChild(txt(mk('div','hbox-items'),h.items));
+    c.appendChild(box);
+  });
+}
+
+/* ─── PROMPT ─────────────────────────────────────────────── */
+function renderPrompt() {
+  const preset=getPreset();
+  const flowTiers=TIERS.filter(t=>preset.flow.includes(t.id));
+  const dfy=TIERS.filter(t=>t.cat==='highticket').map(t=>t.label+': '+t.price).join(' / ');
+  const cont=TIERS.filter(t=>t.cat==='continuity'&&t.priceNum>0).map(t=>t.label+': '+t.price).join(', ');
+  const total=calcTotalArr();
+  txt(document.getElementById('promptText'),
+    'SWEY AIOS termékpiramis — 10 lépcsős, mind a 4 Hormozi offer type lefedve. ' +
+    'Launch stratégia: '+preset.name+'. Fő útvonal: '+flowTiers.map(t=>t.label).join(' → ')+'. ' +
+    'DFY csomagok: '+dfy+'. Recurring: '+cont+'. ' +
+    'ARR potenciál (kalkulált, jelenlegi slider beállítással): '+fmtYear(total)+'. ' +
+    'Frissítsd a value-ladder.md, pricing.md és value-stack.md fájlokat a teljes piramis struktúrával.'
+  );
+}
+
+/* ─── TOGGLE / COPY ──────────────────────────────────────── */
+function doToggle(key,btnId) {
+  state[key]=!state[key];
+  document.getElementById(btnId).className='tgl'+(state[key]?' on':'');
+  updateAll();
+}
+function copyPrompt() {
+  navigator.clipboard.writeText(document.getElementById('promptText').textContent).then(()=>{
+    const btn=document.getElementById('copyBtn');
+    btn.textContent='Copied!'; btn.classList.add('copied');
+    setTimeout(()=>{ btn.textContent='Copy'; btn.classList.remove('copied'); },1600);
+  });
+}
+
+/* ─── UPDATE ALL ─────────────────────────────────────────── */
+function updateAll() {
+  renderPyramid();
+  if (state.tab==='funnel') renderFunnel();
+  if (state.tab==='calc') renderCalc();
+  if (state.tab==='channels') renderChannels();
+  renderPresets('presetBtns');
+  renderPresets('presetBtns2');
+  renderPrompt();
+  updateHeaderArr();
+}
+
+/* ─── INIT ────────────────────────────────────────────────── */
+renderHealth();
+updateAll();
+</script>
+</body>
+</html>
